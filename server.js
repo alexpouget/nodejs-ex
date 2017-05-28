@@ -4,6 +4,9 @@ var express = require('express'),
     app     = express(),
     eps     = require('ejs'),
     morgan  = require('morgan');
+
+//add external files
+var index = require('./routes/index');
     
 Object.assign=require('object-assign')
 
@@ -58,23 +61,8 @@ var initDb = function(callback) {
   });
 };
 
-app.get('/', function (req, res) {
-  // try to initialize the db on every request if it's not already
-  // initialized.
-  if (!db) {
-    initDb(function(err){});
-  }
-  if (db) {
-    var col = db.collection('counts');
-    // Create a document with request IP and current time of request
-    col.insert({ip: req.ip, date: Date.now()});
-    col.count(function(err, count){
-      res.render('index.html', { pageCountMessage : count, dbInfo: dbDetails });
-    });
-  } else {
-    res.render('index.html', { pageCountMessage : null});
-  }
-});
+//add routes
+app.use('/', index);
 
 app.get('/pagecount', function (req, res) {
   // try to initialize the db on every request if it's not already
@@ -90,6 +78,13 @@ app.get('/pagecount', function (req, res) {
     res.send('{ pageCount: -1 }');
   }
 });
+
+// catch 404 and forward to error handler
+app.use(function(req, res, next) {
+        var err = new Error('Not Found');
+        err.status = 404;
+        next(err);
+        });
 
 // error handling
 app.use(function(err, req, res, next){
