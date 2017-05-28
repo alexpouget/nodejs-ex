@@ -25,7 +25,7 @@
     "type": "git",
     "url": "http://github.com/alexpouget/nodejs-ex.git"
   },
-  "author": "Steve Speicher <sspeiche@gmail.com>",
+  "author": "Pouget Brault",
   "license": "CC-BY-1.0",
   "bugs": {
     "url": "http://github.com/alexpouget/nodejs-ex/issues"

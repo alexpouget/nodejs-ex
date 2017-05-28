@@ -18,7 +18,7 @@ router.get('/', function (req, res) {
         } else {
         res.render('index.html', { pageCountMessage : null});
         }*/
-           res.render('index.html', { title: 'trop chaud' });
+           res.render('index.html', { title: 'connexion' });
         });
 
 module.exports = router;
