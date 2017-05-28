@@ -5,7 +5,7 @@ var router = express.Router();
 router.get('/', function (req, res) {
         // try to initialize the db on every request if it's not already
         // initialized.
-        if (!db) {
+        /*if (!db) {
         initDb(function(err){});
         }
         if (db) {
@@ -17,7 +17,8 @@ router.get('/', function (req, res) {
                   });
         } else {
         res.render('index.html', { pageCountMessage : null});
-        }
+        }*/
+           res.render('index.html', { title: 'trop chaud' });
         });
 
 module.exports = router;

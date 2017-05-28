@@ -3,7 +3,8 @@ var express = require('express'),
     fs      = require('fs'),
     app     = express(),
     eps     = require('ejs'),
-    morgan  = require('morgan');
+    morgan  = require('morgan'),
+    mongoose = require('mongoose');
 
 //add external files
 var index = require('./routes/index');
@@ -37,6 +38,15 @@ if (mongoURL == null && process.env.DATABASE_SERVICE_NAME) {
 
   }
 }
+
+//mongoose
+// Use native Node promises
+mongoose.Promise = global.Promise;
+// connect to MongoDB
+mongoose.connect('mongodb://172.30.8.226:27017/suqac_db')
+.then(() =>  console.log('connection succesful'))
+.catch((err) => console.error(err));
+/*
 var db = null,
     dbDetails = new Object();
 
@@ -59,7 +69,7 @@ var initDb = function(callback) {
 
     console.log('Connected to MongoDB at: %s', mongoURL);
   });
-};
+};*/
 
 //add routes
 app.use('/', index);
