@@ -18,7 +18,6 @@
     "npm": "*"
   },
   "scripts": {
-    "preinstall": "npm install -g mongoose"
     "start": "node server.js",
     "test": "IP=0.0.0.0 PORT=3030 mocha --timeout 5000 tests/*_test.js"
   },
@@ -31,6 +30,6 @@
   "bugs": {
     "url": "http://github.com/alexpouget/nodejs-ex/issues"
   },
-  "homepage": "http://github.com/alexpouget/nodejs-ex",
+  "homepage": "http://github.com/alexpouget/nodejs-ex"
   
 }
