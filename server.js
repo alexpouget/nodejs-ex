@@ -8,7 +8,7 @@ var express = require('express'),
 
 //add external files
 var index = require('./routes/index');
-var messenger = require('./routes/messenger');
+//var messenger = require('./routes/messenger');
     
 Object.assign=require('object-assign')
 
@@ -69,7 +69,7 @@ var initDb = function(callback) {
 
 //add routes
 app.use('/', index);
-app.use('/messenger', messenger);
+app.use('/messenger', index);
 
 app.get('/pagecount', function (req, res) {
   // try to initialize the db on every request if it's not already

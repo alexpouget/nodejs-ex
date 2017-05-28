@@ -21,4 +21,9 @@ router.get('/', function (req, res) {
            res.render('index.html', { title: 'connexion' });
         });
 
+router.get('/messenger', function (req, res) {
+           res.render('messenger.html', { title: 'skype uqac' });
+           });
+
+
 module.exports = router;
