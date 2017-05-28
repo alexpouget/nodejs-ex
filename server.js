@@ -1,6 +1,7 @@
 //  OpenShift sample Node application
 var express = require('express'),
     fs      = require('fs'),
+    path = require('path'),
     app     = express(),
     eps     = require('ejs'),
     morgan  = require('morgan');
