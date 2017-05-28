@@ -39,6 +39,9 @@ if (mongoURL == null && process.env.DATABASE_SERVICE_NAME) {
   }
 }
 
+//make folder 'public' public
+app.use(express.static(path.join(__dirname, 'public')));
+
 var db = null,
     dbDetails = new Object();
 
