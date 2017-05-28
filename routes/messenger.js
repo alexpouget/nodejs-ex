@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 
-/* GET home page. and add 1 visits to count */
+/* GET messenger page. and add 1 visits to count */
 router.get('/messenger', function (req, res) {
         // try to initialize the db on every request if it's not already
         // initialized.
