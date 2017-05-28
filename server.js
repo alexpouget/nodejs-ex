@@ -68,7 +68,7 @@ var initDb = function(callback) {
 };
 
 //add routes
-app.use('/', messenger);
+app.use('/', index);
 app.use('/messenger', messenger);
 
 app.get('/pagecount', function (req, res) {
