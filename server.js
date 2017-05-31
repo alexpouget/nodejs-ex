@@ -3,90 +3,86 @@ var express = require('express'),
     fs      = require('fs'),
     path = require('path'),
     app     = express(),
+    mongoose = require('mongoose'),
     eps     = require('ejs'),
-    morgan  = require('morgan');
+    morgan  = require('morgan'),
+    bodyParser = require('body-parser'),
+    cookieParser = require('cookie-parser'),
+    session = require('express-session'),
+    http = require('http');
+
 
 //add external files
 var index = require('./routes/index');
-//var messenger = require('./routes/messenger');
+var user = require('./routes/user');
+var message = require('./routes/message');
+//var login = require('./routes/login');
     
-Object.assign=require('object-assign')
+//Object.assign=require('object-assign')
 
+
+//make folder 'public' public
+app.use(express.static(path.join(__dirname, 'public')));
+app.set('view engine', 'ejs');
 app.engine('html', require('ejs').renderFile);
-app.use(morgan('combined'))
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+// Allow parsing cookies from request headers
+app.use(cookieParser());
+// Session management
+app.use(session({
+    // Private crypting key
+    "secret": "some private",
+    "store":  new session.MemoryStore({ reapInterval: 60000 * 10 })
+}));
+///app.use(morgan('combined'))
 
 var port = process.env.PORT || process.env.OPENSHIFT_NODEJS_PORT || 8080,
     ip   = process.env.IP   || process.env.OPENSHIFT_NODEJS_IP || '0.0.0.0',
     mongoURL = process.env.OPENSHIFT_MONGODB_DB_URL || process.env.MONGO_URL,
     mongoURLLabel = "";
 
-if (mongoURL == null && process.env.DATABASE_SERVICE_NAME) {
-  var mongoServiceName = process.env.DATABASE_SERVICE_NAME.toUpperCase(),
-      mongoHost = process.env[mongoServiceName + '_SERVICE_HOST'],
-      mongoPort = process.env[mongoServiceName + '_SERVICE_PORT'],
-      mongoDatabase = process.env[mongoServiceName + '_DATABASE'],
-      mongoPassword = process.env[mongoServiceName + '_PASSWORD']
-      mongoUser = process.env[mongoServiceName + '_USER'];
-
-  if (mongoHost && mongoPort && mongoDatabase) {
-    mongoURLLabel = mongoURL = 'mongodb://';
-    if (mongoUser && mongoPassword) {
-      mongoURL += mongoUser + ':' + mongoPassword + '@';
-    }
-    // Provide UI label that excludes user id and pw
-    mongoURLLabel += mongoHost + ':' + mongoPort + '/' + mongoDatabase;
-    mongoURL += mongoHost + ':' +  mongoPort + '/' + mongoDatabase;
-
-  }
-}
-
-//make folder 'public' public
-app.use(express.static(path.join(__dirname, 'public')));
-
-var db = null,
-    dbDetails = new Object();
-
-var initDb = function(callback) {
-  if (mongoURL == null) return;
-
-  var mongodb = require('mongodb');
-  if (mongodb == null) return;
-
-  mongodb.connect(mongoURL, function(err, conn) {
-    if (err) {
-      callback(err);
-      return;
-    }
-
-    db = conn;
-    dbDetails.databaseName = db.databaseName;
-    dbDetails.url = mongoURLLabel;
-    dbDetails.type = 'MongoDB';
-
-    console.log('Connected to MongoDB at: %s', mongoURL);
-  });
-};
+// Use native Node promises
+mongoose.Promise = global.Promise;
+// connect to MongoDB
+mongoose.connect('mongodb://localhost/skypeuqac')
+.then(() =>  console.log('connection succesful'))
+.catch((err) => console.error(err));
 
 //add routes
 app.use('/', index);
-app.use('/messenger', index);
+app.use('/login', index);
+app.use('/user', user);
+app.use('/message', message);
 
 app.get('/pagecount', function (req, res) {
-  // try to initialize the db on every request if it's not already
-  // initialized.
-  if (!db) {
-    initDb(function(err){});
-  }
-  if (db) {
-    db.collection('counts').count(function(err, count ){
-      res.send('{ pageCount: ' + count + '}');
-    });
-  } else {
-    res.send('{ pageCount: -1 }');
-  }
+        res.send('{ pageCount: -2 }');
 });
 
-// catch 404 and forward to error handler
+//websocket part
+var server = app.listen(8080);
+var io = require('socket.io')(server);
+
+io.on('connection', function(socket,pseudo){
+    console.log('a user connected');
+      var clients = io.sockets.clients();
+      console.log(clients.connected);
+      socket.on('new user', function(pseudo){
+                socket.pseudo = pseudo;
+                console.log('connection de : ' + pseudo);
+                });
+      socket.on('message', function(msg){
+            console.log('message: ' + msg + 'de la part de '+ socket.pseudo);
+            socket.broadcast.emit('message', msg);
+        });
+      
+      socket.on('disconnect', function () {
+                console.log('a user disconnected');
+                });
+});
+
+//catch 404 and forward to error handler
 app.use(function(req, res, next) {
         var err = new Error('Not Found');
         err.status = 404;
@@ -99,11 +95,9 @@ app.use(function(err, req, res, next){
   res.status(500).send('Something bad happened!');
 });
 
-initDb(function(err){
-  console.log('Error connecting to Mongo. Message:\n'+err);
-});
 
-app.listen(port, ip);
+
+//app.listen(port, ip);
 console.log('Server running on http://%s:%s', ip, port);
 
 module.exports = app ;
