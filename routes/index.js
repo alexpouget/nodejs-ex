@@ -36,10 +36,11 @@ router.post('/login', function (req, res) {
             if (err) return handleError(err);
                 console.log(obj);
                 if(obj){
+                    req.session.idUser = obj._id
                     req.session.pseudo = req.body.pseudo;
                     req.session.email = obj.email;
                     req.session.amis = obj.amis;
-                  
+                  console.log("id = "+req.session.idUser);
                   res.render('messenger',{mysession: req.session,amis: obj.amis,pseudo: req.body.pseudo});
                 }else{
                     console.log("error");

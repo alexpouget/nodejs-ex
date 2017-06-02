@@ -3,7 +3,6 @@
 .chats-row { height: 100vh; }
 .chats-row div {
     height: 50%;
-    border: 1px solid #ddd;
     padding: 0px;
 }
 

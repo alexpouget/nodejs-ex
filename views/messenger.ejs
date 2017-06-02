@@ -11,7 +11,6 @@
                     <script type='text/javascript' src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
                     <script type="text/javascript" src="/socket.io/socket.io.js"></script>
                     <script type="text/javascript" src="/js/bootstrap-notify.min.js"></script>
-                    <script type="text/javascript" src="/js/bootstrap3-typeahead.min.js"></script>
 </head>
 <body>
 <div class="container-fluid">
@@ -26,9 +25,9 @@
                     </a>
                     <a href="#" class="list-group-item chat-request">
                         <div class="input-group">
-                            <input type="text" class="form-control" placeholder="friend name" id="friend" name="friend" required>
+                            <input type="text" class="form-control" placeholder="friend name" id="friendInput" name="friend" required>
                             <span class="input-group-btn">
-                                <button class="btn btn-default"><i class="glyphicon glyphicon-plus"></i> Add friend</button>
+                                <button class="btn btn-default" id="addFriend"><i class="glyphicon glyphicon-plus"></i> Add friend</button>
                             </span>
                         </div>
                         <p><strong><u>Amis :</u></strong> <% if (amis) { %><%-amis.length%><% } %></p>
@@ -38,30 +37,34 @@
                     </a>
                     <a href="#" class="list-group-item chat-request">
                         <div class="input-group">
-                        <input type="text" class="form-control" placeholder="Conversation name" id="conversation" name="conversation" required>
+                        <input type="text" class="form-control" placeholder="Conversation name" id="conversationInput" name="conversation" required>
                         <span class="input-group-btn">
-                        <button id="chat-create-ticket" class="btn btn-default ticket-option" type="button">
+                        <button class="btn btn-default ticket-option" type="button" id="addConversation">
                             <i class="glyphicon glyphicon-pencil"></i> New
                         </button></span>
                         </div>
-                        <strong><u>Conversation :</u></strong>
+                        <div id="conversation-group" class="list-group">
+                        
+                        </div>
                     </a>
                     
                 </div>
-                <div class="col-md-12">
+                <!--<div class="col-md-12">
                     <a href="#" class="list-group-item">TeamSupport</a>
                     <a href="#" class="list-group-item list-group-item-success">About</a>
                     <a href="#" class="list-group-item active">Autre</a>
-                </div>
+                </div>-->
             </div>
         </div>
         <div class="col-md-9 current-chat">
             <div class="row chat-toolbar-row">
                 <div class="col-sm-12">
+                    <div id="conversationName"></div>
                     <div class="input-group chat-toolbar form-horizontal" role="group" aria-label="...">
-                        <input type="text" class="form-control" placeholder="Participants name" id="participants" name="participants" required>
+                        
+                        <input type="text" class="form-control" placeholder="Participants name" id="participantInput" name="participants" required>
                         <span class="input-group-btn">
-                        <button id="chat-add-ticket" class="btn btn-default ticket-option" type="button">
+                        <button class="btn btn-default ticket-option" type="button" id="addParticipant">
                             <i class="glyphicon glyphicon-plus"></i> Add Participants
                         </button>
                         </span>
@@ -75,7 +78,7 @@
             <div class="row current-chat-footer">
                 <div class="panel-footer">
                     <div class="input-group">
-                            <input type="text" class="form-control" placeholder="Type your message" id="message-input" name="message" required>
+                            <input type="text" class="form-control" placeholder="Type your message" id="messageInput" name="message" required>
                             <span class="input-group-btn">
                             <button class="btn btn-default" type="button" id="send" >Send</button>
                             </span>
@@ -85,79 +88,122 @@
         </div>
     </div>
 </div>
-<div id="the-basics">
-    <input class="typeahead" type="text" placeholder="States of USA">
-        </div>
 </body>
 </html>
 <script type="text/javascript">
+    $.ajaxSetup({async: false}); //warning
+    var conversation;
     //autocomplete input
-    var friend = <%-JSON.stringify(amis) %>;
-    var substringMatcher = function(strs) {
-        return function findMatches(q, cb) {
-            var matches, substringRegex;
-            
-            // an array that will be populated with substring matches
-            matches = [];
-            
-            // regex used to determine if a string contains the substring `q`
-            substrRegex = new RegExp(q, 'i');
-            
-            // iterate through the pool of strings and for any string that
-            // contains the substring `q`, add it to the `matches` array
-            $.each(strs, function(i, str) {
-                   if (substrRegex.test(str)) {
-                   matches.push(str);
-                   }
-                   });
-                   
-                   cb(matches);
-        };
-    };
-    var states = ['Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California',
-                  'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia', 'Hawaii',
-                  'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana',
-                  'Maine', 'Maryland', 'Massachusetts', 'Michigan', 'Minnesota',
-                  'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire',
-                  'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota',
-                  'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island',
-                  'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont',
-                  'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming'
-                  ];
-                  
-                  $('#the-basics .typeahead').typeahead({
-                                                        hint: true,
-                                                        highlight: true,
-                                                        minLength: 1
-                                                        },
-                                                        {
-                                                        name: 'states',
-                                                        source: substringMatcher(states)
-                                                        });
+    //todo
     //notify start
     var notify = $.notify({title: '<strong>Hello!</strong>',message: 'You are now connected.'},{type: 'info'});
 
     /** Socket */
     var socket = io();
-    //var pseudo = <%-mysession%>
     var mysession = <%- JSON.stringify(mysession) %>;
     console.log(mysession);
     socket.on('connect', function(){
-        socket.emit('new user', mysession.pseudo);
+              socket.emit('new user', mysession);
         console.log("connection socket reussi.");
     });
     
+    //Message
     socket.on('message', function(message) {
-                            $('#message').prepend('<div class="col-md-12"><ul class="media-list"><li class="media"><div class="media-body"><div class="media"><a class="pull-left" href="#"><img class="media-object img-circle" src="https://app.teamsupport.com/dc/1078/UserAvatar/2733968/48/1470773158079"></a><div class="media-body">'+message+'<br><small class="text-muted">Jhon Rexa | 23rd June at 5:00pm</small><hr></div></div></div></li></ul></div>');
-              $.notify({title: '<strong>Message!</strong>',message: 'New Message from : '},{type: 'info'});
+        displayConversation();
+        $.notify({title: '<strong>Message!</strong><br>',message: 'New Message from : '},{type: 'info'});
     })
     $('#send').click(function() {
-        var message = document.getElementById('message-input').value;
-        console.log(message);
-        socket.emit('message', message);
-        $('#message').prepend('<div class="col-md-12" style="background-color:lightblue;"><ul class="media-list"><li class="media"><div class="media-body"><div class="media"><a class="pull-left" href="#"><img class="media-object img-circle" src="https://app.teamsupport.com/dc/1078/UserAvatar/2733968/48/1470773158079"></a><div class="media-body">'+message+'<br><small class="text-muted">Jhon Rexa | 23rd June at 5:00pm</small><hr></div></div></div></li></ul></div>');
-        document.getElementById('message-input').value = "";
+        var message = document.getElementById('messageInput').value;
+        console.log(conversation);
+        $.post( "/conversation/message/"+mysession.idUser,{id: conversation._id,content: message},function(data){conversation = data;});
+        socket.emit('message', {message: message, conversation: conversation});
+        displayConversation();
+        document.getElementById('messageInput').value = "";
     })
+    
+    //Friend
+    
+    //Add friend change name to id with autocomplete add need id
+    $('#addFriend').click(function() {
+        var friendName = document.getElementById('friendInput').value;
+        $.post( "/user/friend/"+mysession.idUser, {id: friendName });
+        $.notify({title: '<strong>Friends!</strong><br>',message: 'You are now friends with :' +friendName},{type: 'success'});
+        document.getElementById('friendInput').value = "";
+        location.reload();
+    })
+    
+    //conversation
+    // display conversation
+    var conversations =[]
+    function displayListConversation() {
+        $('#conversation-group').html('<strong><u>Conversation : </u></strong>'+ conversations.length);
+        var i = 0;
+        conversations.forEach(function(element){
+            $('#conversation-group').append('<a id="conversationSelection" class="list-group-item"><span id="'+i+'">'+element.name+'</span></a>');
+            i++;
+        });
+    }
+    $('#conversation-group').on('click','#conversationSelection', function() {
+            var id = $(this).children('span').attr('id');
+            conversation = conversations[id];
+            displayConversation();
+            $.notify({title: '<strong>Conversation!</strong>',message: conversation.name+' is now open'},{type: 'info'});
+           });
+
+
+    //get conversation
+    function getConversations(){
+        $.get("/conversation/user/"+mysession.idUser,function( data ) {conversations = data }, "json");
+        displayListConversation();
+    }
+getConversations();
+    //create conversation
+    $('#addConversation').click(function() {
+        var conversationName = document.getElementById('conversationInput').value;
+        $.post( "/conversation/"+mysession.idUser,{name : conversationName}, function( data ) {
+                conversations.push(data);
+                });
+        $.notify({title: '<strong>Conversation!</strong><br>',message: 'now!!! add some friends to this new conversation'},{type: 'success'});
+        document.getElementById('conversationInput').value = "";
+        displayListConversation()
+    })
+    
+    function displayConversation() {
+        if(conversation==null){
+            if(conversations.length<=0){
+                return;
+            }
+            conversation = conversations[0];
+        }else{
+            $.get("/conversation/user/"+mysession.idUser,function( data ) {conversations = data }, "json");
+            conversations.forEach(function(element){
+            if(element._id==conversation._id){
+                conversation = element;
+            }
+            });
+        }
+            $('#conversationName').html('<strong><u>Conversation : </u></strong>'+ conversation.name +' <strong><u> participants :</u></strong> ');
+            conversation.participants.forEach(function(element){
+                $('#conversationName').append(element.pseudo+' ');
+            });
+            $('#message').empty();
+            conversation.data.forEach(function(element){
+                $('#message').append('<div class="col-md-12"><ul class="media-list"><li class="media"><div class="media-body"><div class="media"><a class="pull-left" href="#"></a><div class="media-body">'+element.content+'<br><small class="text-muted">'+element.writer.pseudo+' | '+element.updated_at+'</small><hr></div></div></div></li></ul></div>');
+            });
+            
+    }
+    displayConversation();
+
+    //add participant to conv
+    $('#addParticipant').click(function() {
+        var friendName = document.getElementById('participantInput').value;
+            $.post( "/conversation/addParticipants/"+conversation._id, {name: friendName });
+            $.notify({title: '<strong>Friends!</strong><br>',message:  friendName +' is added to conversation : '+ conversation.name},{type: 'success'});
+            document.getElementById('participantInput').value = "";
+            getConversations();
+            displayConversation();
+    })
+
     
     
 </script>

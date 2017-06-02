@@ -16,6 +16,7 @@ var express = require('express'),
 var index = require('./routes/index');
 var user = require('./routes/user');
 var message = require('./routes/message');
+var conversation = require('./routes/conversation');
 //var login = require('./routes/login');
     
 //Object.assign=require('object-assign')
@@ -55,6 +56,7 @@ app.use('/', index);
 app.use('/login', index);
 app.use('/user', user);
 app.use('/message', message);
+app.use('/conversation', conversation);
 
 app.get('/pagecount', function (req, res) {
         res.send('{ pageCount: -2 }');
@@ -63,18 +65,26 @@ app.get('/pagecount', function (req, res) {
 //websocket part
 var server = app.listen(8080);
 var io = require('socket.io')(server);
-
+var clientMap = new Map();
 io.on('connection', function(socket,pseudo){
     console.log('a user connected');
-      var clients = io.sockets.clients();
-      console.log(clients.connected);
-      socket.on('new user', function(pseudo){
-                socket.pseudo = pseudo;
-                console.log('connection de : ' + pseudo);
+      socket.on('new user', function(client){
+                socket.pseudo = client.pseudo;
+                socket.idUser = client.idUser;
+                console.log('connection de : ' + client.pseudo +' '+ client.idUser);
+                clientMap.set(client.idUser,socket.id);
+                console.log(clientMap.get(pseudo));
                 });
       socket.on('message', function(msg){
-            console.log('message: ' + msg + 'de la part de '+ socket.pseudo);
-            socket.broadcast.emit('message', msg);
+            console.log('message: ' + msg.message + ' de la part de '+ socket.pseudo);
+            console.log(msg.conversation);
+            msg.conversation.participants.forEach(function(element){
+                console.log('particpants ' +element);
+                console.log(clientMap.get(element));
+                if(socket.idUser!=element){
+                    socket.to(clientMap.get(element)).emit('message', msg.message);
+                }
+            });
         });
       
       socket.on('disconnect', function () {
@@ -82,7 +92,7 @@ io.on('connection', function(socket,pseudo){
                 });
 });
 
-//catch 404 and forward to error handler
+/*catch 404 and forward to error handler
 app.use(function(req, res, next) {
         var err = new Error('Not Found');
         err.status = 404;
@@ -93,7 +103,7 @@ app.use(function(req, res, next) {
 app.use(function(err, req, res, next){
   console.error(err.stack);
   res.status(500).send('Something bad happened!');
-});
+});*/
 
 
 

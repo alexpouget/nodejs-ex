@@ -5,7 +5,7 @@ var User = require('./User.js');
 var ConversationSchema = new mongoose.Schema({
                                          name: String,
                                          data: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Message' }],
-                                         participant: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+                                         participants: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
                                          updated_at: { type: Date, default: Date.now }
                                          });
 

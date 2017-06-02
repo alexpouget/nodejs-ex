@@ -25,18 +25,43 @@ router.get('/:id', function(req, res, next) {
 router.get('/friend/:id', function(req, res, next) {
            User.findById(req.params.id).populate('amis', 'pseudo').exec(function (err, post){
                          if (err) return next(err);
-                         res.json(post.amis);
+                         if(!post){ res.json(post)}
+                         else { res.json(post.amis);}
                          });
            });
+
+
+/* Add friend /todos/id */
+router.post('/friend/:id', function(req, res, next) {
+            User.findById(req.params.id, function (err, post) {
+                     if (err) return next(err);
+                     User.findById(req.body.id, function (err, post2) {
+                              if (err) return next(err);
+                              post2.amis.push(post);
+                              post2.save(function (err) {
+                                         if (err) return handleError(err);
+                                         post.amis.push(post2);
+                                         post.save(function (err) {
+                                                   if (err) return handleError(err);
+                                                   res.json(post);
+                                                   });
+                                         });
+                              
+                              });
+                     });
+            });
 
 
 // Post exemple
 router.post('/', function(req, res, next) {
             User.create(req.body, function (err, post) {
-                        if (err) return next(err);
-                        res.json(post);
-                        });
+                 if (err) return next(err);
+                 res.json(post);
+                 });
             });
+
+
+
 
 
 /* PUT /todos/:id */
